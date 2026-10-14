@@ -1,0 +1,19 @@
+server            kind       listing only  with calls  high/med  matched rules
+poisoned_add      malicious  caught        caught      3/1       injection.conceal, injection.exfil-param, injection.secret-path
+hidden_unicode    malicious  caught        caught      4/0       unicode.tag
+shadowing         malicious  caught        caught      2/0       injection.cross-tool
+schema_poison     malicious  caught        caught      1/0       injection.exfil-param
+rug_pull          malicious  missed        caught      2/1       rug-pull.changed
+flip_on_relist    malicious  caught        caught      3/0       rug-pull.changed
+lying_readonly    malicious  missed        caught      1/0       dynamic.readonly-write
+exfil_network     malicious  missed        caught      2/0       dynamic.closed-world-network, dynamic.secret-read
+leaky_debug       malicious  missed        caught      2/0       dynamic.canary-output, dynamic.secret-read
+output_injection  malicious  missed        caught      0/1       dynamic.output-injection
+clean_calc        benign     clean         clean       0/0       -
+clean_notes       benign     clean         clean       0/0       -
+clean_fetch       benign     clean         clean       0/0       -
+clean_files       benign     clean         clean       0/0       -
+clean_git         benign     clean         clean       0/0       -
+
+with calls: 10/10 malicious caught, 5/5 benign clean
+listing only: 5/10 malicious caught

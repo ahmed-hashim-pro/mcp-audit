@@ -1,0 +1,102 @@
+Held-out servers, first run, made by the code in this repository's first commit, before the fixes it led to.
+Every medium/high finding, with the verdict written after reading it.
+
+server             tools  calls        med/high  correct  false
+context7               2  2 (1 err)           2        0      2
+markitdown             1  1 (1 err)           1        1      0
+arxiv                 19  19 (15 err)         6        1      5
+aws-documentation      5  5 (3 err)           3        0      3
+notion                24  24 (24 err)         0        0      0
+kubernetes            23  23 (17 err)         1        1      0
+playwright            25  25 (25 err)         7        0      7
+chrome-devtools       30  30 (30 err)         9        1      8
+
+8 servers, 129 tools, 129 calls (116 returned errors): 29 medium/high findings, 4 correct, 25 false alarms
+
+context7           HIGH   injection.exfil-param  tool resolve-library-id, input `query` description
+                          …t7 API for processing. Do not include any sensitive or confidential information such as API keys, passwords, credentials, personal data, or
+                          false alarm: the sentence says NOT to include secrets
+context7           HIGH   injection.exfil-param  tool query-docs, input `query` description
+                          …t7 API for processing. Do not include any sensitive or confidential information such as API keys, passwords, credentials, personal data, or
+                          false alarm: the sentence says NOT to include secrets
+markitdown         HIGH   dynamic.secret-read  tool convert_to_markdown
+                          /root/.netrc
+                          correct: requests reads ~/.netrc for credentials on every fetch
+arxiv              HIGH   dynamic.readonly-write  tool list_papers
+                          /root/.arxiv-mcp-server/papers, /root/.arxiv-mcp-server
+                          correct: list_papers creates ~/.arxiv-mcp-server/papers
+arxiv              HIGH   dynamic.readonly-write  tool read_paper
+                          /root/.arxiv-mcp-server/papers (attempted: EEXIST)
+                          false alarm: mkdir of a folder that already exists changes nothing
+arxiv              HIGH   dynamic.readonly-write  tool list_watches
+                          /root/.arxiv-mcp-server/papers (attempted: EEXIST)
+                          false alarm: mkdir of a folder that already exists changes nothing
+arxiv              HIGH   dynamic.readonly-write  tool get_paper_outline
+                          /root/.arxiv-mcp-server/papers (attempted: EEXIST)
+                          false alarm: mkdir of a folder that already exists changes nothing
+arxiv              HIGH   dynamic.readonly-write  tool read_paper_section
+                          /root/.arxiv-mcp-server/papers (attempted: EEXIST)
+                          false alarm: mkdir of a folder that already exists changes nothing
+arxiv              HIGH   dynamic.readonly-write  tool search_paper_text
+                          /root/.arxiv-mcp-server/papers (attempted: EEXIST)
+                          false alarm: mkdir of a folder that already exists changes nothing
+aws-documentation  HIGH   injection.secret-path  tool read_documentation, description
+                          …s - Must be from the docs.aws.amazon.com domain - Must…
+                          false alarm: matched '.aws' inside docs.aws.amazon.com
+aws-documentation  HIGH   injection.secret-path  tool read_sections, description
+                          …ons( url='https://docs.aws.amazon.com/s3/latest/userguid…
+                          false alarm: matched '.aws' inside docs.aws.amazon.com
+aws-documentation  MEDIUM injection.secret-path  tool search_table, description
+                          …s - Must be from the docs.aws.amazon.com domain - Must…
+                          false alarm: matched '.aws' inside docs.aws.amazon.com
+kubernetes         HIGH   dynamic.secret-read  server startup
+                          /root/.kube/config
+                          correct: reads ~/.kube/config at startup, as a Kubernetes client does
+playwright         HIGH   dynamic.readonly-write  tool browser_console_messages
+                          /root/.cache/ms-playwright-mcp/mcp-chrome-c52ddf6 (attempted: EEXIST)
+                          false alarm: mkdir of a folder that already exists changes nothing
+playwright         HIGH   dynamic.readonly-write  tool browser_find
+                          /root/.cache/ms-playwright-mcp/mcp-chrome-c52ddf6 (attempted: EEXIST)
+                          false alarm: mkdir of a folder that already exists changes nothing
+playwright         HIGH   dynamic.readonly-write  tool browser_network_requests
+                          /root/.cache/ms-playwright-mcp/mcp-chrome-c52ddf6 (attempted: EEXIST)
+                          false alarm: mkdir of a folder that already exists changes nothing
+playwright         HIGH   dynamic.readonly-write  tool browser_network_request
+                          /root/.cache/ms-playwright-mcp/mcp-chrome-c52ddf6 (attempted: EEXIST)
+                          false alarm: mkdir of a folder that already exists changes nothing
+playwright         HIGH   dynamic.readonly-write  tool browser_take_screenshot
+                          /root/.cache/ms-playwright-mcp/mcp-chrome-c52ddf6 (attempted: EEXIST)
+                          false alarm: mkdir of a folder that already exists changes nothing
+playwright         HIGH   dynamic.readonly-write  tool browser_snapshot
+                          /root/.cache/ms-playwright-mcp/mcp-chrome-c52ddf6 (attempted: EEXIST)
+                          false alarm: mkdir of a folder that already exists changes nothing
+playwright         HIGH   dynamic.readonly-write  tool browser_wait_for
+                          /root/.cache/ms-playwright-mcp/mcp-chrome-c52ddf6 (attempted: EEXIST)
+                          false alarm: mkdir of a folder that already exists changes nothing
+chrome-devtools    HIGH   dynamic.secret-read  tool emulate
+                          /root/.npmrc
+                          correct: emulate opened ~/.npmrc
+chrome-devtools    HIGH   dynamic.readonly-write  tool get_console_message
+                          /root/.cache/chrome-devtools-mcp/chrome-profile (attempted: EEXIST)
+                          false alarm: mkdir of a folder that already exists changes nothing
+chrome-devtools    HIGH   dynamic.readonly-write  tool get_css_styles
+                          /root/.cache/chrome-devtools-mcp/chrome-profile (attempted: EEXIST)
+                          false alarm: mkdir of a folder that already exists changes nothing
+chrome-devtools    HIGH   dynamic.readonly-write  tool list_console_messages
+                          /root/.cache/chrome-devtools-mcp/chrome-profile (attempted: EEXIST)
+                          false alarm: mkdir of a folder that already exists changes nothing
+chrome-devtools    HIGH   dynamic.readonly-write  tool list_network_requests
+                          /root/.cache/chrome-devtools-mcp/chrome-profile (attempted: EEXIST)
+                          false alarm: mkdir of a folder that already exists changes nothing
+chrome-devtools    HIGH   dynamic.readonly-write  tool list_pages
+                          /root/.cache/chrome-devtools-mcp/chrome-profile (attempted: EEXIST)
+                          false alarm: mkdir of a folder that already exists changes nothing
+chrome-devtools    HIGH   dynamic.readonly-write  tool performance_analyze_insight
+                          /root/.cache/chrome-devtools-mcp/chrome-profile (attempted: EEXIST)
+                          false alarm: mkdir of a folder that already exists changes nothing
+chrome-devtools    HIGH   dynamic.readonly-write  tool select_page
+                          /root/.cache/chrome-devtools-mcp/chrome-profile (attempted: EEXIST)
+                          false alarm: mkdir of a folder that already exists changes nothing
+chrome-devtools    HIGH   dynamic.readonly-write  tool wait_for
+                          /root/.cache/chrome-devtools-mcp/chrome-profile (attempted: EEXIST)
+                          false alarm: mkdir of a folder that already exists changes nothing

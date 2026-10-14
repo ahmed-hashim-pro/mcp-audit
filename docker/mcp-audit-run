@@ -1,0 +1,12 @@
+#!/bin/sh
+# Entry point of the mcp-audit sandbox: run the server under strace, logging to /audit.
+# The syscall list is mcp_audit.sandbox.TRACED_SYSCALLS ("?" skips names this CPU lacks);
+# tests/test_sandbox.py checks the two agree.
+set -eu
+if ! strace -o /dev/null true 2>/dev/null; then
+  echo "mcp-audit-run: strace cannot trace here; the container needs --cap-add SYS_PTRACE" >&2
+  exit 70
+fi
+exec strace -f -ttt -qq -y -s 256 -o /audit/trace.log \
+  -e trace=?chmod,?chown,?connect,?creat,?execve,?execveat,?fchmodat,?fchmodat2,?fchownat,?ftruncate,?lchown,?link,?linkat,?mkdir,?mkdirat,?mknod,?mknodat,?open,?openat,?openat2,?rename,?renameat,?renameat2,?rmdir,?sendmsg,?sendto,?symlink,?symlinkat,?truncate,?unlink,?unlinkat \
+  -- "$@"

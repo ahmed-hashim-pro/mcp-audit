@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mcp-audit"
+version = "0.1.0"
+description = "Audit an MCP server: injected instructions in its tool descriptions, annotations its tools don't honour, and definitions that change after use"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+dependencies = ["mcp>=2.3,<3"]
+keywords = ["mcp", "model-context-protocol", "security", "prompt-injection", "llm", "audit"]
+classifiers = ["Programming Language :: Python :: 3", "License :: OSI Approved :: MIT License"]
+
+[project.optional-dependencies]
+dev = ["pytest==9.1.1", "hypothesis==6.169.0", "ruff==0.17.0", "mypy==2.4.0"]
+
+[project.scripts]
+mcp-audit = "mcp_audit.cli:main"
+
+[project.urls]
+Repository = "https://github.com/ahmed-hashim-pro/mcp-audit"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+ignore = ["E501"]
+
+[tool.mypy]
+strict = true
+files = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

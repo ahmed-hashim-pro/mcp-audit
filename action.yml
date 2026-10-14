@@ -1,0 +1,37 @@
+name: mcp-audit
+description: Audit an MCP server in CI - injected instructions, broken annotations, rug pulls - and fail on changed tool definitions.
+branding:
+  icon: shield
+  color: red
+inputs:
+  command:
+    description: The server command, e.g. "npx -y @modelcontextprotocol/server-everything" or "python server.py".
+    required: true
+  args:
+    description: Extra arguments for `mcp-audit scan`, e.g. "--sandbox my-image --fail-on medium".
+    required: false
+    default: ""
+  lock:
+    description: A lockfile from `mcp-audit pin`. When set, the job also fails if any tool definition changed.
+    required: false
+    default: ""
+  python-version:
+    description: Python to run mcp-audit with.
+    required: false
+    default: "3.12"
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+    - name: Install mcp-audit
+      shell: bash
+      run: python -m pip install --quiet "${{ github.action_path }}"
+    - name: Scan
+      shell: bash
+      run: mcp-audit scan ${{ inputs.args }} -- ${{ inputs.command }}
+    - name: Verify against the lockfile
+      if: inputs.lock != ''
+      shell: bash
+      run: mcp-audit verify --lock "${{ inputs.lock }}" -- ${{ inputs.command }}

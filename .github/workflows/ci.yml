@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: pip install -e '.[dev]'
+      - run: ruff check . && ruff format --check .
+      - run: mypy
+      # The Docker tests skip here; the sandbox job runs them.
+      - run: pytest -q -rs
+
+  # Build the sandbox, run the corpus through it, and check docs/corpus.txt is current.
+  sandbox:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e '.[dev]'
+      - run: make images
+      - run: pytest -q -rs tests/test_sandbox_live.py
+      - run: python scripts/corpus.py --check | tee /tmp/corpus.txt
+      - run: diff -u docs/corpus.txt /tmp/corpus.txt
+
+  # The GitHub Action itself: passes an honest server, fails a poisoned one.
+  action:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install 'mcp==2.3.0'
+      - name: Honest server, pinned
+        uses: ./
+        with:
+          command: python examples/pin/weather.py
+          lock: examples/pin/mcp-audit.lock.json
+      - name: Poisoned server
+        id: poisoned
+        continue-on-error: true
+        uses: ./
+        with:
+          command: python examples/corpus/poisoned_add.py
+      - name: Changed definition
+        id: changed
+        continue-on-error: true
+        uses: ./
+        with:
+          command: python examples/pin/weather.py v2
+          lock: examples/pin/mcp-audit.lock.json
+      - name: Both must have failed
+        run: |
+          test "${{ steps.poisoned.outcome }}" = failure
+          test "${{ steps.changed.outcome }}" = failure

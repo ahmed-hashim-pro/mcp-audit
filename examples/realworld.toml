@@ -1,0 +1,94 @@
+# Real servers mcp-audit is measured on. "reference" are the servers from
+# github.com/modelcontextprotocol/servers; the rules were adjusted after the first run on
+# them (see the README). "heldout" are popular third-party servers the rules were not
+# tuned on; their first-run results are kept in docs/heldout-first-run.txt.
+
+[[server]]
+name = "time"
+set = "reference"
+image = "mcp-audit-reference"
+command = ["mcp-server-time"]
+
+[[server]]
+name = "fetch"
+set = "reference"
+image = "mcp-audit-reference"
+command = ["mcp-server-fetch"]
+
+[[server]]
+name = "git"
+set = "reference"
+image = "mcp-audit-reference"
+command = ["mcp-server-git"]
+
+[[server]]
+name = "filesystem"
+set = "reference"
+image = "mcp-audit-reference"
+command = ["mcp-server-filesystem", "/workspace"]
+
+[[server]]
+name = "memory"
+set = "reference"
+image = "mcp-audit-reference"
+command = ["mcp-server-memory"]
+
+[[server]]
+name = "sequential-thinking"
+set = "reference"
+image = "mcp-audit-reference"
+command = ["mcp-server-sequential-thinking"]
+
+[[server]]
+name = "everything"
+set = "reference"
+image = "mcp-audit-reference"
+command = ["mcp-server-everything"]
+
+[[server]]
+name = "context7"
+set = "heldout"
+image = "mcp-audit-heldout"
+command = ["context7-mcp"]
+
+[[server]]
+name = "markitdown"
+set = "heldout"
+image = "mcp-audit-heldout"
+command = ["markitdown-mcp"]
+
+[[server]]
+name = "arxiv"
+set = "heldout"
+image = "mcp-audit-heldout"
+command = ["arxiv-mcp-server"]
+
+[[server]]
+name = "aws-documentation"
+set = "heldout"
+image = "mcp-audit-heldout"
+command = ["awslabs.aws-documentation-mcp-server"]
+
+[[server]]
+name = "notion"
+set = "heldout"
+image = "mcp-audit-heldout"
+command = ["notion-mcp-server"]
+
+[[server]]
+name = "kubernetes"
+set = "heldout"
+image = "mcp-audit-heldout"
+command = ["mcp-server-kubernetes"]
+
+[[server]]
+name = "playwright"
+set = "heldout"
+image = "mcp-audit-heldout"
+command = ["playwright-mcp"]
+
+[[server]]
+name = "chrome-devtools"
+set = "heldout"
+image = "mcp-audit-heldout"
+command = ["chrome-devtools-mcp"]

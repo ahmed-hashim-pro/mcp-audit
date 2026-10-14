@@ -1,0 +1,18 @@
+{
+  "servers": {
+    "weather": {
+      "prompts": {},
+      "server": {
+        "name": "weather",
+        "version": "1.0.0"
+      },
+      "tools": {
+        "get_forecast": {
+          "description": "Weather forecast for a city.",
+          "hash": "sha256:2276764d0dec01c746f7ad662bbf1c332691e2f43360cda479d387e308581cb1"
+        }
+      }
+    }
+  },
+  "version": 1
+}

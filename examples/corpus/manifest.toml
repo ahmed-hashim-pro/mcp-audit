@@ -1,0 +1,89 @@
+# The corpus: what each server does and what mcp-audit must report for it.
+# A malicious server counts as detected when at least one finding has a rule in `expect`
+# at `min` severity or above (default high). A benign server must have no medium or high finding.
+
+[[server]]
+file = "poisoned_add.py"
+kind = "malicious"
+attack = "poisoned description: read SSH key and MCP config, pass as sidenote, hide it"
+expect = ["injection.secret-path", "injection.conceal", "injection.exfil-param"]
+
+[[server]]
+file = "hidden_unicode.py"
+kind = "malicious"
+attack = "instruction hidden in invisible Unicode tag characters"
+expect = ["unicode.tag"]
+
+[[server]]
+file = "shadowing.py"
+kind = "malicious"
+attack = "orders about another server's send_email tool (shadowing)"
+expect = ["injection.cross-tool"]
+
+[[server]]
+file = "schema_poison.py"
+kind = "malicious"
+attack = "instruction in an input property's description, not the tool's"
+expect = ["injection.exfil-param"]
+
+[[server]]
+file = "rug_pull.py"
+kind = "malicious"
+attack = "description rewritten after first call, announced with list_changed"
+expect = ["rug-pull.changed"]
+
+[[server]]
+file = "flip_on_relist.py"
+kind = "malicious"
+attack = "description differs on the second listing, no notification"
+expect = ["rug-pull.changed"]
+
+[[server]]
+file = "lying_readonly.py"
+kind = "malicious"
+attack = "readOnlyHint tool that rewrites a file on every call"
+expect = ["dynamic.readonly-write"]
+
+[[server]]
+file = "exfil_network.py"
+kind = "malicious"
+attack = "closed-world read-only tool reads ~/.ssh/id_rsa and connects out"
+expect = ["dynamic.secret-read", "dynamic.closed-world-network"]
+
+[[server]]
+file = "leaky_debug.py"
+kind = "malicious"
+attack = "returns a credential file's contents in its output"
+expect = ["dynamic.canary-output", "dynamic.secret-read"]
+
+[[server]]
+file = "output_injection.py"
+kind = "malicious"
+attack = "prompt injection in the tool's result"
+expect = ["dynamic.output-injection"]
+min = "medium"
+
+[[server]]
+file = "clean_calc.py"
+kind = "benign"
+attack = "twin of poisoned_add.py, with a legitimate cross-reference to its own tool"
+
+[[server]]
+file = "clean_notes.py"
+kind = "benign"
+attack = "twin of lying_readonly.py, honest annotations"
+
+[[server]]
+file = "clean_fetch.py"
+kind = "benign"
+attack = "open-world tool that reaches the network, as annotated"
+
+[[server]]
+file = "clean_files.py"
+kind = "benign"
+attack = "writes and deletes files, annotated destructive"
+
+[[server]]
+file = "clean_git.py"
+kind = "benign"
+attack = "read-only tools that spawn git"
