@@ -34,12 +34,13 @@ realworld: images-realworld
 	$(PY) scripts/realworld.py --check | tee docs/realworld.txt
 
 # Re-record docs/demo.gif: VHS in a container that drives the host's Docker for the sandbox.
+# The sandbox's temp dir is bind-mounted by the host's Docker, so it must have the same path inside.
 DEMO_TMP := $(CURDIR)/build/demo-tmp
 demo: images
 	mkdir -p $(DEMO_TMP)
 	docker build -q -f docs/demo.Dockerfile -t mcp-audit-demo .
 	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(CURDIR):/vhs \
-	  -v $(DEMO_TMP):$(DEMO_TMP) -e TMPDIR=$(DEMO_TMP) mcp-audit-demo docs/demo.tape
+	  -v $(DEMO_TMP):$(DEMO_TMP) -e DEMO_TMP=$(DEMO_TMP) mcp-audit-demo docs/demo.tape
 
 clean:
 	rm -rf build dist src/*.egg-info .pytest_cache .mypy_cache .ruff_cache .hypothesis

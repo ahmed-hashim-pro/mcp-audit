@@ -7,6 +7,8 @@
 Verdicts live in examples/realworld-labels.toml, written by hand after reading each finding:
 "correct" means the server really does what the finding says (whether or not that matters);
 "false-alarm" means it does not. A new or changed finding has no verdict until someone reads it.
+`where = "*"` matches the rule anywhere on that server, for background work whose timing decides
+which call it is pinned to.
 """
 
 from __future__ import annotations
@@ -55,7 +57,7 @@ def main() -> int:
         counts["tools"] += len(report.snapshot.tools)
         verdict_counts = {"correct": 0, "false-alarm": 0}
         for f in loud:
-            lab = verdicts.get((s["name"], f.rule, f.where))
+            lab = verdicts.get((s["name"], f.rule, f.where)) or verdicts.get((s["name"], f.rule, "*"))
             v = lab["verdict"] if lab else "UNLABELLED"
             unlabelled += lab is None
             if v in verdict_counts:

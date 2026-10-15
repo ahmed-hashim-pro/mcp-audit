@@ -12,7 +12,7 @@ Set Theme "GitHub Dark"
 Set TypingSpeed 25ms
 
 Hide
-Type "export PS1='$ ' && cd /vhs && clear"
+Type "export PS1='$ ' TMPDIR=$DEMO_TMP && cd /vhs && clear"
 Enter
 Show
 

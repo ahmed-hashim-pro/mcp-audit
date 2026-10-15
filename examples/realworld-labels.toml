@@ -1,0 +1,44 @@
+# Verdicts on every medium/high finding scripts/realworld.py prints. Written by hand after
+# reading the finding (and, where needed, the raw trace from --keep-trace).
+
+[[label]]
+server = "git"
+rule = "dynamic.readonly-write"
+where = "tool git_status"
+verdict = "correct"
+why = "plain `git status` refreshes .git/index (index.lock, then rename) unless run with --no-optional-locks"
+
+[[label]]
+server = "git"
+rule = "dynamic.closed-world-network"
+where = "tool git_checkout"
+verdict = "correct"
+why = "git looks up the machine's domain name (DNS) to stamp the reflog when user.email is unset; harmless, but it is a network call"
+
+[[label]]
+server = "markitdown"
+rule = "dynamic.secret-read"
+where = "tool convert_to_markdown"
+verdict = "correct"
+why = "Python requests reads ~/.netrc on every fetch, to attach credentials for matching hosts"
+
+[[label]]
+server = "arxiv"
+rule = "dynamic.readonly-write"
+where = "tool list_papers"
+verdict = "correct"
+why = "list_papers (readOnlyHint) creates ~/.arxiv-mcp-server/papers the first time it runs"
+
+[[label]]
+server = "kubernetes"
+rule = "dynamic.secret-read"
+where = "server startup"
+verdict = "correct"
+why = "reads ~/.kube/config at startup; expected for a Kubernetes client, and worth knowing"
+
+[[label]]
+server = "chrome-devtools"
+rule = "dynamic.secret-read"
+where = "*"
+verdict = "correct"
+why = "a version check at startup runs `npm config get registry`, and npm reads ~/.npmrc; it runs in the background, so which call it lands in varies"

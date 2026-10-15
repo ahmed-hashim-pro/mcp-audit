@@ -213,11 +213,19 @@ _TAG = re.compile(
     _I,
 )
 
+# A dot-directory counts only as a path: after ~/, $HOME/ or a home directory, or standing alone,
+# and not as a piece of a host name (".aws" in docs.aws.amazon.com is not a path).
+_NOT_IN_A_NAME = r"(?<![\w.-])"
+_ENDS_A_PATH = r"(?![\w-]|\.[A-Za-z])"
 _SECRET_PATH = re.compile(
-    r"(?:~|\$HOME|/home/[\w.-]+|/root|%USERPROFILE%)?/?\.(?:ssh|aws|gnupg|kube|docker|azure|config/gcloud)\b(?:/[\w./-]*)?"
+    r"(?:(?:~|\$HOME|/home/[\w.-]+|/root|%USERPROFILE%)/|" + _NOT_IN_A_NAME + r"/?)"
+    r"\.(?:ssh|aws|gnupg|kube|docker|azure|config/gcloud)" + _ENDS_A_PATH + r"(?:/[\w./-]*)?"
     r"|\bid_(?:rsa|ed25519|ecdsa|dsa)\b"
-    r"|\.(?:netrc|npmrc|pypirc|git-credentials|pgpass)\b"
-    r"|/etc/(?:shadow|passwd|sudoers)\b"
+    r"|"
+    + _NOT_IN_A_NAME
+    + r"\.(?:netrc|npmrc|pypirc|git-credentials|pgpass)"
+    + _ENDS_A_PATH
+    + r"|/etc/(?:shadow|passwd|sudoers)\b"
     r"|\b(?:claude_desktop_config|mcp)\.json\b"
     r"|\bcredentials\.json\b",
     _I,
@@ -300,6 +308,18 @@ _DIRECTIVE = re.compile(
 )
 
 
+_NEGATED = re.compile(
+    r"\b(?:do\s+not|don'?t|never|must\s+not|should\s+not|shouldn'?t|cannot|can'?t|avoid|without|no\s+need\s+to)"
+    r"\s+(?:\w+\s+){0,2}$",
+    re.I,
+)
+
+
+def _negated(s: str, i: int) -> bool:
+    """An instruction NOT to do something ("Do not include API keys") asks for the opposite."""
+    return bool(_NEGATED.search(s[max(0, i - 40) : i]))
+
+
 def _sentence_start(s: str, i: int) -> int:
     """Start of the sentence containing position i; a dot inside a name like mcp.json is not an end."""
     ends = [m.end() for m in re.finditer(r"[.!?](?=\s)|\n", s[:i])]
@@ -332,6 +352,8 @@ def check_text(where: str, s: str, own_tools: set[str]) -> list[Finding]:
             add("injection.secret-path", Severity.MEDIUM, "mentions a credential file", m)
         break
     for m in _EXFIL_PARAM.finditer(s):
+        if _negated(s, m.start()):
+            continue
         sentence = s[_sentence_start(s, m.start()) : m.end()]
         if _SENSITIVE.search(m.group("what")) or _SECRET_PATH.search(sentence):
             param = m.group("param") or m.group("quoted")
@@ -341,7 +363,7 @@ def check_text(where: str, s: str, own_tools: set[str]) -> list[Finding]:
     else:
         if ", input `" in where and where.endswith("description"):
             for m in _FILL_THIS.finditer(s):
-                if _SENSITIVE.search(m.group("what")):
+                if _SENSITIVE.search(m.group("what")) and not _negated(s, m.start()):
                     add("injection.exfil-param", Severity.HIGH, "this input asks to be filled with private data", m)
                     break
     if m := _URL_EXFIL.search(s):

@@ -12,6 +12,10 @@ _COLOR = {Severity.HIGH: "\033[1;31m", Severity.MEDIUM: "\033[33m", Severity.INF
 _RESET = "\033[0m"
 
 
+def _n(count: int, noun: str) -> str:
+    return f"{count} {noun}" + ("" if count == 1 else "s")
+
+
 def _use_color(out: TextIO) -> bool:
     return out.isatty() and "NO_COLOR" not in os.environ
 
@@ -28,10 +32,10 @@ def render(report: Report, show_info: bool = False, out: TextIO | None = None) -
     name = f"{srv.get('name', '?')} {srv.get('version', '')}".strip()
     print(f"server   {name}", file=out)
     print(f"target   {report.target}", file=out)
-    surface = f"{len(snap.tools)} tools, {len(snap.prompts)} prompts, {len(snap.resources)} resources"
+    surface = f"{_n(len(snap.tools), 'tool')}, {_n(len(snap.prompts), 'prompt')}, {_n(len(snap.resources), 'resource')}"
     if report.dynamic:
         failed = sum(1 for c in report.calls if c.is_error or c.error)
-        surface += f"; {len(report.calls)} calls made ({failed} returned errors)"
+        surface += f"; {_n(len(report.calls), 'call')} made ({failed} returned errors)"
     print(f"surface  {surface}", file=out)
     print(file=out)
     shown = [f for f in report.findings if show_info or f.severity > Severity.INFO]

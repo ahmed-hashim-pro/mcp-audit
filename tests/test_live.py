@@ -15,7 +15,7 @@ from pathlib import Path
 import pytest
 from conftest import CORPUS, PY, ROOT
 
-from mcp_audit.cli import main
+from mcp_audit.cli import _load_calls, main
 from mcp_audit.scan import ConnectError, Options, Target, audit
 
 
@@ -57,20 +57,11 @@ def test_calls_file_overrides_synthesised_arguments(tmp_path: Path) -> None:
     calls = tmp_path / "calls.json"
     calls.write_text(json.dumps({"add": {"a": 40, "b": 2}, "divide": [{"a": 1, "b": 4}, {"a": 1, "b": 0}]}))
     target = Target(command=[PY, str(CORPUS / "clean_calc.py")])
-    report = asyncio.run(
-        audit(
-            target,
-            Options(
-                exercise=True,
-                unsafe_host_calls=True,
-                calls={"add": [{"a": 40, "b": 2}], "divide": [{"a": 1, "b": 4}, {"a": 1, "b": 0}]},
-            ),
-        )
-    )
-    assert [(c.tool, c.output, c.is_error) for c in report.calls][:2] == [
-        ("add", "42", False),
-        ("divide", "0.25", False),
-    ]
+    opts = Options(exercise=True, unsafe_host_calls=True, calls=_load_calls(str(calls)))
+    report = asyncio.run(audit(target, opts))
+    # Text first; the SDK adds the structured result on the next line.
+    got = [(c.tool, c.output.splitlines()[0], c.is_error) for c in report.calls[:2]]
+    assert got == [("add", "42", False), ("divide", "0.25", False)]
     assert report.calls[2].is_error  # division by zero comes back as a tool error, not a crash
 
 

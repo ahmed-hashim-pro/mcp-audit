@@ -21,7 +21,7 @@ TRACE = r"""
 8     1792019290.100900 sendto(9<socket:[5]>, "key=MCPAUDIT-CANARY-7f3a9c-ssh", 30, 0, {sa_family=AF_INET, sin_port=htons(53), sin_addr=inet_addr("192.0.2.1")}, 16) = -1 ENETUNREACH (Network is unreachable)
 9     1792019290.101000 execve("/usr/bin/git", ["git", "status", "--short"], 0x7ffd /* 9 vars */) = 0
 9     1792019290.101100 rename("/workspace/repo/.git/index.lock", "/workspace/repo/.git/index") = 0
-9     1792019290.101200 mkdir("/workspace/new", 0777) = -1 EEXIST (File exists)
+9     1792019290.101200 mkdir("/workspace/new", 0777) = -1 EACCES (Permission denied)
 9     1792019290.101300 ftruncate(3</workspace/notes.json>, 0) = 0
 9     1792019290.101400 openat(AT_FDCWD</>, "/dev/null", O_RDWR) = 3</dev/null>
 9     1792019290.101500 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED} ---
@@ -89,3 +89,19 @@ def test_container_has_no_network_and_mounts_only_the_audit_dir(tmp_path: Path) 
     assert [a for a in args if a.startswith(str(tmp_path))] == [f"{tmp_path}:/audit"]
     assert args[-4:] == ["img", "mcp-audit-run", "srv", "--flag"]
     assert "--privileged" not in args
+
+
+def test_mkdir_of_an_existing_folder_is_not_a_write() -> None:
+    # playwright-mcp, chrome-devtools-mcp and arxiv-mcp-server all "ensure" a cache folder on every call
+    text = "\n".join(
+        [
+            '4 1.0 mkdir("/root/.cache/ms-playwright-mcp/mcp-chrome-c52ddf6", 0777) = -1 EEXIST (File exists)',
+            '4 1.1 mkdirat(AT_FDCWD</>, "/root/.arxiv-mcp-server/papers", 0777) = -1 EEXIST (File exists)',
+            '4 1.2 mkdir("/root/.arxiv-mcp-server/papers", 0777) = 0',
+            '4 1.3 mkdir("/workspace/x", 0777) = -1 EACCES (Permission denied)',
+        ]
+    )
+    assert [(e.detail, e.failed) for e in parse_trace(text)] == [
+        ("/root/.arxiv-mcp-server/papers", False),
+        ("/workspace/x", True),
+    ]

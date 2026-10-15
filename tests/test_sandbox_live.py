@@ -1,5 +1,7 @@
 """End to end in Docker: the corpus image, strace and docker diff, through the CLI."""
 
+import subprocess
+
 import pytest
 from conftest import needs_corpus_image
 
@@ -32,8 +34,10 @@ def test_honest_servers_are_clean(capsys: pytest.CaptureFixture[str]) -> None:
 
 
 def test_no_container_is_left_behind() -> None:
-    import subprocess
+    def ours() -> set[str]:
+        out = subprocess.run(["docker", "ps", "-a", "--format", "{{.Names}}"], capture_output=True, text=True).stdout
+        return {n for n in out.split() if n.startswith("mcp-audit-")}
 
+    before = ours()  # other scans may be running on this machine
     main(scan("clean_calc"))
-    names = subprocess.run(["docker", "ps", "-a", "--format", "{{.Names}}"], capture_output=True, text=True).stdout
-    assert "mcp-audit-" not in names
+    assert ours() <= before

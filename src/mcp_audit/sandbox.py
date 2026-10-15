@@ -215,6 +215,8 @@ def _classify(name: str, args: str, result: str, pid: int, ts: float) -> list[Ev
         return out
     if name in _PATH_WRITES and strings:
         path = _resolve(strings[0], args)
+        if name in ("mkdir", "mkdirat") and errno == "EEXIST":
+            return []  # "make sure this folder exists": nothing changed, nothing was attempted
         return [] if ignored(path) else [ev("write", path)]
     if name == "ftruncate":
         fd = _FD_PATH.match(args)

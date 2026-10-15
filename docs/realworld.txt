@@ -1,0 +1,38 @@
+server               set        tools  calls        high/med  correct/false  time
+time                 reference  2      2 (1 err)    0/0       0/0            2s
+fetch                reference  1      1 (1 err)    0/0       0/0            2s
+git                  reference  12     12 (4 err)   2/0       2/0            2s
+filesystem           reference  14     14 (6 err)   0/0       0/0            1s
+memory               reference  9      9 (1 err)    0/0       0/0            1s
+sequential-thinking  reference  1      1 (0 err)    0/0       0/0            1s
+everything           reference  13     13 (2 err)   0/0       0/0            16s
+context7             heldout    2      2 (1 err)    0/0       0/0            3s
+markitdown           heldout    1      1 (1 err)    1/0       1/0            5s
+arxiv                heldout    19     19 (15 err)  1/0       1/0            20s
+aws-documentation    heldout    5      5 (3 err)    0/0       0/0            3s
+notion               heldout    24     24 (24 err)  0/0       0/0            2s
+kubernetes           heldout    23     23 (17 err)  1/0       1/0            8s
+playwright           heldout    25     25 (25 err)  0/0       0/0            2s
+chrome-devtools      heldout    30     30 (30 err)  1/0       1/0            3s
+
+reference: 7 servers, 52 tools, 2 medium/high findings: 2 correct, 0 false alarms
+heldout: 8 servers, 129 tools, 4 medium/high findings: 4 correct, 0 false alarms
+
+git                HIGH   dynamic.readonly-write  tool git_status
+                          /workspace/repo/.git/index.lock, /workspace/repo/.git/index
+                          verdict: correct: plain `git status` refreshes .git/index (index.lock, then rename) unless run with --no-optional-locks
+git                HIGH   dynamic.closed-world-network  tool git_checkout
+                          192.168.50.1:53 (attempted: ENETUNREACH)
+                          verdict: correct: git looks up the machine's domain name (DNS) to stamp the reflog when user.email is unset; harmless, but it is a network call
+markitdown         HIGH   dynamic.secret-read  tool convert_to_markdown
+                          /root/.netrc
+                          verdict: correct: Python requests reads ~/.netrc on every fetch, to attach credentials for matching hosts
+arxiv              HIGH   dynamic.readonly-write  tool list_papers
+                          /root/.arxiv-mcp-server/papers, /root/.arxiv-mcp-server
+                          verdict: correct: list_papers (readOnlyHint) creates ~/.arxiv-mcp-server/papers the first time it runs
+kubernetes         HIGH   dynamic.secret-read  server startup
+                          /root/.kube/config
+                          verdict: correct: reads ~/.kube/config at startup; expected for a Kubernetes client, and worth knowing
+chrome-devtools    HIGH   dynamic.secret-read  tool close_page
+                          /root/.npmrc
+                          verdict: correct: a version check at startup runs `npm config get registry`, and npm reads ~/.npmrc; it runs in the background, so which call it lands in varies
