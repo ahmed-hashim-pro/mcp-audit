@@ -110,7 +110,7 @@ python3 -m venv .venv && . .venv/bin/activate
 pip install -e '.[dev]'
 
 mcp-audit scan -- python examples/corpus/poisoned_add.py      # what it tells the model
-make images                                                   # the sandbox and the corpus, ~2 minutes
+make images                                                   # the sandbox and the corpus, 2–3 minutes
 mcp-audit scan --sandbox mcp-audit-corpus -- python /corpus/exfil_network.py
 mcp-audit scan --sandbox mcp-audit-corpus -- python /corpus/rug_pull.py
 python scripts/corpus.py                                      # the table above
@@ -221,6 +221,10 @@ RUN npm install -g your-mcp-server@1.2.3      # or: pip install your-mcp-server=
 ```
 
 `docker/reference.Dockerfile` and `docker/heldout.Dockerfile` are worked examples.
+
+If mcp-audit itself runs in a container that talks to the host's Docker socket, its temp
+directory is bind-mounted by the *host*. So set `TMPDIR` to a directory mounted at the same path
+inside and out, as `make demo` does.
 `--keep-trace DIR` saves the raw strace log and the server's stderr.
 
 ## In CI
